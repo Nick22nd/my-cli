@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 const { program } = require('commander')
 const inquirer = require('inquirer')
+const download = require('download-git-repo')
+const {PROJECT_MAP} = require('./constant')
+const { existsSync } = require('./file')
+const { join } = require('path')
 console.log('hello my-cli')
 // 输出版对应的版本号
 program
@@ -18,20 +22,31 @@ program
             default: 'ProjectA',
             choices: [{
                 name: '项目 A',
-                value: 'ProjectA'
+                value: 'PROJECT_A'
             },
             {
                 name: '项目 B',
-                value: 'ProjectB'
+                value: 'PROJECT_B'
             },
             {
                 name: '项目 C',
-                value: 'ProjectC'
+                value: 'PROJECT_C'
             }
             ]
         }])
-        console.log(`成功创建项目: ${name}`)
-        console.log(`所使用的模板: ${template}`)
+        const dirPath = join(process.cwd(), name)
+        await existsSync(dirPath)
+        // 下载 GitHub 仓库时可以省略前面的 github:
+        console.log(`开始创建项目: ${name}`, dirPath, template, PROJECT_MAP[template])
+        download(`${PROJECT_MAP[template].path}`, name, error => {
+        if (error) {
+          console.log(`创建 ${name} 项目失败`)
+          console.log('失败原因: ', error)
+        } else {
+          console.log(`成功创建项目: ${name}`)
+          console.log(`所使用的模板: ${template}`)
+        }
+      })
     })
 program
     .command('checkAll')
